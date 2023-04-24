@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   ImageBackground,
+  KeyboardAvoidingView,
 } from "react-native";
 
 const Start = ({ navigation }) => {
@@ -28,6 +29,7 @@ const Start = ({ navigation }) => {
             style={styles.input}
             onChangeText={setText}
           />
+
           <Text>Choose Background Color</Text>
           <View style={styles.radioButtonContainer}>
             <TouchableOpacity
@@ -60,6 +62,9 @@ const Start = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior='padding' />
+      ) : null}
     </ImageBackground>
   );
 };
