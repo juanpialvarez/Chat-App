@@ -1,36 +1,51 @@
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
 import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 
-const Chat = ({ route, navigation }) => {
-  const { name, color } = route.params;
+const Chat = ({ db, route, navigation }) => {
+  const { name, color, userID } = route.params;
   const [messages, setMessages] = useState([]);
+
   useEffect(() => {
     navigation.setOptions({ title: name });
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello developer",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native",
-          avatar: "https://placeimg.com/140/140/any",
-        },
-      },
-      {
-        _id: 2,
-        text: "This is a system message",
-        createdAt: new Date(),
-        system: true,
-      },
-    ]);
+    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+    const unsubMessages = onSnapshot(q, (docs) => {
+      let newMessages = [];
+      docs.forEach((doc) => {
+        newMessages.push({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: new Date(doc.data().createdAt.toMillis()),
+        });
+      });
+      setMessages(newMessages);
+    });
+    return () => {
+      if (unsubMessages) unsubMessages();
+    };
   }, []);
 
-  const onSend = (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
+  const addMessagesItem = async (newMessage) => {
+    const newMessageRef = await addDoc(
+      collection(db, "messages"),
+      newMessage[0]
     );
+    if (!newMessageRef.id) {
+      Alert.alert(
+        "There was an error sending your message. Please try again later"
+      );
+    }
+  };
+
+  const onSend = (newMessages) => {
+    addMessagesItem(newMessages);
   };
 
   const renderBubble = (props) => {
@@ -39,7 +54,8 @@ const Chat = ({ route, navigation }) => {
         {...props}
         textStyle={{
           right: {
-            color: color === "white" ? "black" : "white",
+            color:
+              (color === "white") | (color === "yellow") ? "black" : "white",
           },
         }}
         wrapperStyle={{
@@ -62,8 +78,9 @@ const Chat = ({ route, navigation }) => {
         renderBubble={renderBubble}
         onSend={(messages) => onSend(messages)}
         user={{
-          _id: 1,
+          _id: userID,
         }}
+        name={{ name: name }}
       />
       {Platform.OS === "android" ? (
         <KeyboardAvoidingView behavior='height' />
