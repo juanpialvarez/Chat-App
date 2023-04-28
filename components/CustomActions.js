@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Text, StyleSheet, Alert } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import * as Location from "expo-location";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -58,8 +58,7 @@ const CustomActions = ({
       if (permissions?.granted) {
         let result = await ImagePicker.launchImageLibraryAsync();
         if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-        else Alert.alert("Permissions haven't been granted.");
-      }
+      } else Alert.alert("Permissions haven't been granted.");
     };
 
     const takePhoto = async () => {
@@ -67,8 +66,7 @@ const CustomActions = ({
       if (permissions?.granted) {
         let result = await ImagePicker.launchCameraAsync();
         if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-        else Alert.alert("Permissions haven't been granted.");
-      }
+      } else Alert.alert("Permissions haven't been granted.");
     };
     actionSheet.showActionSheetWithOptions(
       {
